@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from handpick import values_for_key
 from loguru import logger
 
+PATH_CACHE = Path(__file__).parent / '.yml_files.yaml'
 API_URL = 'https://api.github.com'
 HEADERS = {'Accept': 'application/vnd.github+json'}
 HTTP_CACHE = Path(__file__).parent / '.cache.sqlite3'
@@ -18,10 +19,18 @@ HTTP_CACHE = Path(__file__).parent / '.cache.sqlite3'
 def _get_usages(discovery_root):
 
     def _read_workflow_files():
-        print(f'Discovering workflow files under {discovery_root}')
-        workflow_files = [
-            os.fspath(path) for path in discovery_root.rglob('.github/workflows/*.yml')
-        ]
+        try:
+            with PATH_CACHE.open(encoding='utf8') as f:
+                workflow_files = yaml.safe_load(f)
+        except FileNotFoundError:
+            print(f'Discovering workflow files under {discovery_root}')
+            workflow_files = [
+                os.fspath(path)
+                for path in discovery_root.rglob('.github/workflows/*.yml')
+            ]
+            with PATH_CACHE.open('w', encoding='utf8') as f:
+                logger.debug(f'Writing filenames to {PATH_CACHE}')
+                yaml.safe_dump(workflow_files, f)
         logger.debug('\n'.join(workflow_files))
         for filename in workflow_files:
             with open(filename, encoding='utf8') as f:
