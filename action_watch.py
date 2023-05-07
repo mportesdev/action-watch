@@ -46,8 +46,11 @@ def _get_paginated_data(url):
         if 'link' not in headers:
             return
         page_dispatch = {
-            re_match[2]: re_match[1]
-            for re_match in re.finditer(r'page=(\d+).+?rel="(\w+)"', headers['link'])
+            re_match['label']: re_match['number']
+            for re_match in re.finditer(
+                r'page=(?P<number>\d+).+?rel="(?P<label>\w+)"',
+                headers['link']
+            )
         }
         logger.debug(page_dispatch)
         result = page_dispatch.get('next')
