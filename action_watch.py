@@ -13,7 +13,7 @@ API_URL = 'https://api.github.com'
 HEADERS = {'Accept': 'application/vnd.github+json'}
 
 
-def get_usages(discovery_root):
+def _get_usages(discovery_root):
 
     def _read_workflow_files():
         print(f'Discovering workflow files under {discovery_root}')
@@ -40,7 +40,7 @@ def get_usages(discovery_root):
     return result
 
 
-def get_paginated_data(url):
+def _get_paginated_data(url):
 
     def _next_page_number(headers):
         if 'link' not in headers:
@@ -74,7 +74,7 @@ def get_paginated_data(url):
         query_params['page'] = next_page
 
 
-def get_latest_release_tag(repo):
+def _get_latest_release_tag(repo):
     with session:
         response = session.get(
             f'{API_URL}/repos/{repo}/releases/latest',
@@ -84,15 +84,15 @@ def get_latest_release_tag(repo):
     return response.json()['tag_name']
 
 
-def main(repo, used_revs):
+def _check_repo(repo, used_revs):
     print(f'[{repo}]')
     sha_for_tag = {}
-    for page_data in get_paginated_data(f'{API_URL}/repos/{repo}/tags'):
+    for page_data in _get_paginated_data(f'{API_URL}/repos/{repo}/tags'):
         for item in page_data:
             sha_for_tag[item['name']] = item['commit']['sha'][:7]
 
     sha_for_branch = {}
-    for page_data in get_paginated_data(f'{API_URL}/repos/{repo}/branches'):
+    for page_data in _get_paginated_data(f'{API_URL}/repos/{repo}/branches'):
         for item in page_data:
             sha_for_branch[item['name']] = item['commit']['sha'][:7]
 
@@ -101,7 +101,7 @@ def main(repo, used_revs):
         print('Skipped')
         return
 
-    latest_tag = get_latest_release_tag(repo)
+    latest_tag = _get_latest_release_tag(repo)
     latest_sha = sha_for_tag[latest_tag]
     logger.debug(f'latest release tag: {latest_tag} (commit {latest_sha})')
 
@@ -141,5 +141,5 @@ if __name__ == '__main__':
     )
     session = requests.Session()
 
-    for repo, usages in get_usages(os.getenv('ACTION_WATCH_DISCOVERY_ROOT')).items():
-        main(repo, usages)
+    for repo, usages in _get_usages(os.getenv('ACTION_WATCH_DISCOVERY_ROOT')).items():
+        _check_repo(repo, usages)
