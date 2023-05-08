@@ -18,8 +18,7 @@ def _get_usages(discovery_root):
     def _read_workflow_files():
         print(f'Discovering workflow files under {discovery_root}')
         workflow_files = [
-            os.fspath(path)
-            for path in Path(discovery_root).rglob('.github/workflows/*.yml')
+            os.fspath(path) for path in discovery_root.rglob('.github/workflows/*.yml')
         ]
         logger.debug('\n'.join(workflow_files))
         for filename in workflow_files:
@@ -144,5 +143,6 @@ if __name__ == '__main__':
     )
     session = requests.Session()
 
-    for repo, usages in _get_usages(os.getenv('ACTION_WATCH_DISCOVERY_ROOT')).items():
+    discovery_root = Path(os.getenv('ACTION_WATCH_DISCOVERY_ROOT')).expanduser()
+    for repo, usages in _get_usages(discovery_root).items():
         _check_repo(repo, usages)
