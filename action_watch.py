@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 
 import requests
+import requests_cache
 import yaml
 from dotenv import load_dotenv
 from handpick import values_for_key
@@ -11,6 +12,7 @@ from loguru import logger
 
 API_URL = 'https://api.github.com'
 HEADERS = {'Accept': 'application/vnd.github+json'}
+HTTP_CACHE = Path(__file__).parent / '.cache.sqlite3'
 
 
 def _get_usages(discovery_root):
@@ -60,6 +62,7 @@ def _get_paginated_data(url):
     while True:
         with session:
             response = session.get(url, headers=HEADERS, params=query_params)
+            logger.debug(f'cached response: {getattr(response, "from_cache", False)}')
         try:
             response.raise_for_status()
         except requests.HTTPError:
@@ -82,6 +85,7 @@ def _get_latest_release_tag(repo):
             f'{API_URL}/repos/{repo}/releases/latest',
             headers=HEADERS,
         )
+        logger.debug(f'cached response: {getattr(response, "from_cache", False)}')
     response.raise_for_status()
     return response.json()['tag_name']
 
@@ -142,7 +146,12 @@ if __name__ == '__main__':
         level='DEBUG' if debug_from_env and debug_from_env != '0' else 'WARNING',
         format='<level>{level}: {message}</level>',
     )
-    session = requests.Session()
+
+    cache_requests_from_env = os.getenv('ACTION_WATCH_CACHE_REQUESTS')
+    if cache_requests_from_env and cache_requests_from_env != '0':
+        session = requests_cache.CachedSession(os.fspath(HTTP_CACHE))
+    else:
+        session = requests.Session()
 
     discovery_root = Path(os.getenv('ACTION_WATCH_DISCOVERY_ROOT')).expanduser()
     for repo, usages in _get_usages(discovery_root).items():
