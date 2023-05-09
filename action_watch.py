@@ -135,10 +135,11 @@ def _check_repo(repo, used_revs):
 
 if __name__ == '__main__':
     load_dotenv()
+    debug_from_env = os.getenv('ACTION_WATCH_DEBUG')
     logger.remove()
     logger.add(
         sys.stderr,
-        level='DEBUG' if os.getenv('ACTION_WATCH_DEBUG') else 'WARNING',
+        level='DEBUG' if debug_from_env and debug_from_env != '0' else 'WARNING',
         format='<level>{level}: {message}</level>',
     )
     session = requests.Session()
