@@ -16,22 +16,28 @@ HEADERS = {'Accept': 'application/vnd.github+json'}
 HTTP_CACHE = Path(__file__).parent / '.cache.sqlite3'
 
 
-def _get_usages(discovery_root):
+def _get_usages(discovery_root, use_cache=False):
 
     def _read_workflow_files():
-        try:
-            with PATH_CACHE.open(encoding='utf8') as f:
-                workflow_files = yaml.safe_load(f)
-        except FileNotFoundError:
+        workflow_files = None
+        if use_cache:
+            try:
+                with PATH_CACHE.open(encoding='utf8') as f:
+                    logger.debug(f'Reading filenames from {PATH_CACHE}')
+                    workflow_files = yaml.safe_load(f)
+            except FileNotFoundError:
+                logger.debug(f'{PATH_CACHE} not found')
+        if workflow_files is None:
             print(f'Discovering workflow files under {discovery_root}')
             workflow_files = [
                 os.fspath(path)
                 for path in discovery_root.rglob('.github/workflows/*.yml')
             ]
-            with PATH_CACHE.open('w', encoding='utf8') as f:
-                logger.debug(f'Writing filenames to {PATH_CACHE}')
-                yaml.safe_dump(workflow_files, f)
-        logger.debug('\n'.join(workflow_files))
+            if use_cache:
+                with PATH_CACHE.open('w', encoding='utf8') as f:
+                    logger.debug(f'Writing filenames to {PATH_CACHE}')
+                    yaml.safe_dump(workflow_files, f)
+        logger.debug('\n' + '\n'.join(workflow_files))
         for filename in workflow_files:
             with open(filename, encoding='utf8') as f:
                 workflow_data = yaml.safe_load(f)
@@ -166,5 +172,8 @@ if __name__ == '__main__':
         session = requests.Session()
 
     discovery_root = Path(os.getenv('ACTION_WATCH_DISCOVERY_ROOT')).expanduser()
-    for repo, usages in _get_usages(discovery_root).items():
+    for repo, usages in _get_usages(
+            discovery_root,
+            use_cache=_get_env_flag('CACHE_PATHS'),
+    ).items():
         _check_repo(repo, usages)
