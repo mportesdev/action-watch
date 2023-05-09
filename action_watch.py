@@ -10,47 +10,52 @@ from dotenv import load_dotenv
 from handpick import values_for_key
 from loguru import logger
 
-PATH_CACHE = Path(__file__).parent / '.yml_files.yaml'
+BASEDIR = Path(__file__).parent
+PATH_CACHE = BASEDIR / '.yml_files.yaml'
+HTTP_CACHE = BASEDIR / '.cache.sqlite3'
 API_URL = 'https://api.github.com'
 HEADERS = {'Accept': 'application/vnd.github+json'}
-HTTP_CACHE = Path(__file__).parent / '.cache.sqlite3'
 
 
 def _get_usages(discovery_root, use_cache=False):
 
-    def _read_workflow_files():
-        workflow_files = None
+    def _discover_workflow_files():
+        paths = None
         if use_cache:
             try:
                 with PATH_CACHE.open(encoding='utf8') as f:
                     logger.debug(f'Reading filenames from {PATH_CACHE}')
-                    workflow_files = yaml.safe_load(f)
+                    paths = yaml.safe_load(f)
             except FileNotFoundError:
                 logger.debug(f'{PATH_CACHE} not found')
-        if workflow_files is None:
+        if paths is None:
             print(f'Discovering workflow files under {discovery_root}')
-            workflow_files = [
+            paths = [
                 os.fspath(path)
                 for path in discovery_root.rglob('.github/workflows/*.yml')
             ]
             if use_cache:
                 with PATH_CACHE.open('w', encoding='utf8') as f:
                     logger.debug(f'Writing filenames to {PATH_CACHE}')
-                    yaml.safe_dump(workflow_files, f)
-        logger.debug('\n' + '\n'.join(workflow_files))
-        for filename in workflow_files:
-            with open(filename, encoding='utf8') as f:
+                    yaml.safe_dump(paths, f)
+        logger.debug('\n' + '\n'.join(paths))
+        return paths
+
+    def _read_workflow_files(paths):
+        for file_path in paths:
+            with open(file_path, encoding='utf8') as f:
                 workflow_data = yaml.safe_load(f)
             for action_spec in values_for_key(workflow_data, 'uses'):
-                yield filename, action_spec
+                yield file_path, action_spec
 
+    paths = _discover_workflow_files()
     result = {}
-    for filename, action_spec in _read_workflow_files():
+    for file_path, action_spec in _read_workflow_files(paths):
         repo, revision = action_spec.split('@')
         item = result.setdefault(repo, {})
-        filenames = item.setdefault(revision, [])
-        if filename not in filenames:
-            filenames.append(filename)
+        file_paths = item.setdefault(revision, [])
+        if file_path not in file_paths:
+            file_paths.append(file_path)
 
     logger.debug(f'\n{yaml.safe_dump(result, indent=4)}')
     return result
