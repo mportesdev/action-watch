@@ -137,18 +137,21 @@ def _check_repo(repo, used_revs):
             print(f'  {file}')
 
 
+def _get_env_flag(key):
+    value = os.getenv(f'ACTION_WATCH_{key}')
+    return bool(value) and value != '0'
+
+
 if __name__ == '__main__':
     load_dotenv()
-    debug_from_env = os.getenv('ACTION_WATCH_DEBUG')
     logger.remove()
     logger.add(
         sys.stderr,
-        level='DEBUG' if debug_from_env and debug_from_env != '0' else 'WARNING',
+        level='DEBUG' if _get_env_flag('DEBUG') else 'WARNING',
         format='<level>{level}: {message}</level>',
     )
 
-    cache_requests_from_env = os.getenv('ACTION_WATCH_CACHE_REQUESTS')
-    if cache_requests_from_env and cache_requests_from_env != '0':
+    if _get_env_flag('CACHE_REQUESTS'):
         session = requests_cache.CachedSession(os.fspath(HTTP_CACHE))
     else:
         session = requests.Session()
