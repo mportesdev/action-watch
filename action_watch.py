@@ -73,16 +73,20 @@ def _get_paginated_data(url):
                 headers['link']
             )
         }
-        logger.debug(page_dispatch)
         result = page_dispatch.get('next')
-        logger.debug(f'next page number: {result}')
+        logger.debug(f'pagination: {page_dispatch}, next page: {result}')
         return result
 
     query_params = {}
     while True:
         with session:
             response = session.get(url, headers=HEADERS, params=query_params)
-            logger.debug(f'cached response: {getattr(response, "from_cache", False)}')
+        cached = getattr(response, "from_cache", False)
+        logger.debug(f'cached response: {cached}')
+        if not cached:
+            logger.debug(
+                f'rate limit remaining: {response.headers["X-RateLimit-Remaining"]}'
+            )
         try:
             response.raise_for_status()
         except requests.HTTPError:
@@ -105,7 +109,12 @@ def _get_latest_release_tag(repo):
             f'{API_URL}/repos/{repo}/releases/latest',
             headers=HEADERS,
         )
-        logger.debug(f'cached response: {getattr(response, "from_cache", False)}')
+    cached = getattr(response, "from_cache", False)
+    logger.debug(f'cached response: {cached}')
+    if not cached:
+        logger.debug(
+            f'rate limit remaining: {response.headers["X-RateLimit-Remaining"]}'
+        )
     response.raise_for_status()
     return response.json()['tag_name']
 
@@ -129,10 +138,10 @@ def _check_repo(repo, used_revs):
 
     latest_tag = _get_latest_release_tag(repo)
     latest_sha = sha_for_tag[latest_tag]
-    logger.debug(f'latest release tag: {latest_tag} (commit {latest_sha})')
+    logger.info(f'latest release tag: {latest_tag} (commit {latest_sha})')
 
     current_revs = [rev for rev, sha in revs.items() if sha == latest_sha]
-    logger.debug(f'revisions pointing to commit {latest_sha}: {current_revs}')
+    logger.info(f'revisions pointing to commit {latest_sha}: {current_revs}')
 
     outdated_used = {
         rev: files for rev, files in used_revs.items()
