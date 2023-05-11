@@ -12,6 +12,9 @@ dependencies = [
     "handpick",
 ]
 
+[project.scripts]
+action-watch = "action_watch:main"
+
 [tool.setuptools]
 py-modules = ["action_watch"]
 

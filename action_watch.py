@@ -171,7 +171,7 @@ def _get_env_flag(key):
     return bool(value) and value != '0'
 
 
-if __name__ == '__main__':
+def main():
     load_dotenv()
     logger.remove()
     logger.add(
@@ -180,6 +180,7 @@ if __name__ == '__main__':
         format='<level>{level}: {message}</level>',
     )
 
+    global session
     if _get_env_flag('CACHE_REQUESTS'):
         session = requests_cache.CachedSession(os.fspath(HTTP_CACHE))
     else:
@@ -191,3 +192,7 @@ if __name__ == '__main__':
             use_cache=_get_env_flag('CACHE_PATHS'),
     ).items():
         _check_repo(repo, usages)
+
+
+if __name__ == '__main__':
+    main()
