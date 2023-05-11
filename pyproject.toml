@@ -10,6 +10,7 @@ dependencies = [
     "requests-cache",
     "PyYAML",
     "handpick",
+    "helper-auth",
 ]
 
 [project.scripts]

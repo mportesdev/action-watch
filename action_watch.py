@@ -8,6 +8,7 @@ import requests_cache
 import yaml
 from dotenv import load_dotenv
 from handpick import values_for_key
+from helper_auth import HelperAuth
 from loguru import logger
 
 CONFIG_DIR = Path.home() / '.config' / 'action-watch'
@@ -83,7 +84,7 @@ def _get_paginated_data(url):
     query_params = {}
     while True:
         with session:
-            response = session.get(url, headers=HEADERS, params=query_params)
+            response = session.get(url, headers=HEADERS, params=query_params, auth=auth)
         cached = getattr(response, "from_cache", False)
         logger.debug(f'cached response: {cached}')
         if not cached:
@@ -109,8 +110,7 @@ def _get_paginated_data(url):
 def _get_latest_release_tag(repo):
     with session:
         response = session.get(
-            f'{API_URL}/repos/{repo}/releases/latest',
-            headers=HEADERS,
+            f'{API_URL}/repos/{repo}/releases/latest', headers=HEADERS, auth=auth
         )
     cached = getattr(response, "from_cache", False)
     logger.debug(f'cached response: {cached}')
@@ -189,7 +189,12 @@ def _setup_env():
             '# path to search recursively for `.github/workflows/*.yml` files\n'
             '# (if empty or not set, falls back to current working directory)\n'
             'ACTION_WATCH_DISCOVERY_ROOT=~/projects/python/\n\n'
+            '# git credential helper command to be used by an authentication handler'
+            ' to authenticate to GitHub\n'
+            '# (see https://pypi.org/project/helper-auth/ for more info)\n'
+            'ACTION_WATCH_AUTH_HELPER=\n\n'
             '# string to be used as the Authorization header of HTTP requests\n'
+            '# (ignored if ACTION_WATCH_AUTH_HELPER is set)\n'
             'ACTION_WATCH_AUTH_HEADER=\n\n'
             '# the following are boolean flags; use 0 or 1\n'
             'ACTION_WATCH_CACHE_PATHS=1\n'
@@ -225,12 +230,19 @@ def main():
     else:
         session = requests.Session()
 
-    auth_header = os.getenv('ACTION_WATCH_AUTH_HEADER')
-    if auth_header:
-        logger.debug('Using Authorization header')
-        HEADERS['Authorization'] = auth_header
+    global auth
+    auth_helper = os.getenv('ACTION_WATCH_AUTH_HELPER')
+    if auth_helper:
+        logger.debug('Using authentication handler')
+        auth = HelperAuth(auth_helper, cache_token=True)
     else:
-        logger.debug('No authentication')
+        auth = None
+        auth_header = os.getenv('ACTION_WATCH_AUTH_HEADER')
+        if auth_header:
+            logger.debug('Using Authorization header')
+            HEADERS['Authorization'] = auth_header
+        else:
+            logger.debug('No authentication')
 
     for repo, usages in action_usages.items():
         _check_repo(repo, usages)
