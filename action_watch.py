@@ -10,9 +10,11 @@ from dotenv import load_dotenv
 from handpick import values_for_key
 from loguru import logger
 
-BASEDIR = Path(__file__).parent
-PATH_CACHE = BASEDIR / '.yml_files.yaml'
-HTTP_CACHE = BASEDIR / '.cache.sqlite3'
+CONFIG_DIR = Path.home() / '.config' / 'action-watch'
+DOTENV = CONFIG_DIR / '.env'
+CACHE_DIR = Path.home() / '.cache' / 'action-watch'
+PATH_CACHE = CACHE_DIR / '.yml_files.yaml'
+HTTP_CACHE = CACHE_DIR / '.cache.sqlite3'
 API_URL = 'https://api.github.com'
 HEADERS = {'Accept': 'application/vnd.github+json'}
 
@@ -35,6 +37,7 @@ def _get_usages(discovery_root, use_cache=False):
                 for path in discovery_root.rglob('.github/workflows/*.yml')
             ]
             if use_cache:
+                CACHE_DIR.mkdir(parents=True, exist_ok=True)
                 with PATH_CACHE.open('w', encoding='utf8') as f:
                     logger.debug(f'Writing filenames to {PATH_CACHE}')
                     yaml.safe_dump(paths, f)
@@ -172,7 +175,10 @@ def _get_env_flag(key):
 
 
 def main():
-    load_dotenv()
+    CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    if not DOTENV.is_file():
+        DOTENV.touch()
+    load_dotenv(DOTENV)
     logger.remove()
     logger.add(
         sys.stderr,
