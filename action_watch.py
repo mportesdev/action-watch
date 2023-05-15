@@ -174,11 +174,23 @@ def _get_env_flag(key):
     return bool(value) and value != '0'
 
 
-def main():
-    CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+def _setup_env():
+    """Create a default `.env` file if necessary.
+    Load `.env` into environment.
+    """
     if not DOTENV.is_file():
-        DOTENV.touch()
+        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+        DOTENV.write_text(
+            'ACTION_WATCH_DISCOVERY_ROOT=~/projects/python/\n'
+            'ACTION_WATCH_CACHE_PATHS=1\n'
+            'ACTION_WATCH_CACHE_REQUESTS=1\n'
+            'ACTION_WATCH_DEBUG=0\n'
+        )
     load_dotenv(DOTENV)
+
+
+def main():
+    _setup_env()
     logger.remove()
     logger.add(
         sys.stderr,
