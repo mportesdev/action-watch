@@ -198,17 +198,21 @@ def main():
         format='<level>{level}: {message}</level>',
     )
 
+    action_usages = _get_usages(
+        Path(os.getenv('ACTION_WATCH_DISCOVERY_ROOT')).expanduser(),
+        use_cache=_get_env_flag('CACHE_PATHS'),
+    )
+    if not action_usages:
+        print('No action usages found')
+        return
+
     global session
     if _get_env_flag('CACHE_REQUESTS'):
         session = requests_cache.CachedSession(os.fspath(HTTP_CACHE))
     else:
         session = requests.Session()
 
-    discovery_root = Path(os.getenv('ACTION_WATCH_DISCOVERY_ROOT')).expanduser()
-    for repo, usages in _get_usages(
-            discovery_root,
-            use_cache=_get_env_flag('CACHE_PATHS'),
-    ).items():
+    for repo, usages in action_usages.items():
         _check_repo(repo, usages)
 
 
