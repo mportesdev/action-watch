@@ -182,6 +182,7 @@ def _setup_env():
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
         DOTENV.write_text(
             '# path to search recursively for `.github/workflows/*.yml` files\n'
+            '# (if empty or not set, falls back to current working directory)\n'
             'ACTION_WATCH_DISCOVERY_ROOT=~/projects/python/\n\n'
             '# the following are boolean flags; use 0 or 1\n'
             'ACTION_WATCH_CACHE_PATHS=1\n'
@@ -200,8 +201,11 @@ def main():
         format='<level>{level}: {message}</level>',
     )
 
+    discovery_root = os.getenv('ACTION_WATCH_DISCOVERY_ROOT', '')
+    if not discovery_root:
+        logger.debug('Discovery root not specified, falling back to cwd')
     action_usages = _get_usages(
-        Path(os.getenv('ACTION_WATCH_DISCOVERY_ROOT')).expanduser(),
+        Path(discovery_root).expanduser(),
         use_cache=_get_env_flag('CACHE_PATHS'),
     )
     if not action_usages:
