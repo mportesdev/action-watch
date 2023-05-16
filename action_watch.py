@@ -181,7 +181,9 @@ def _setup_env():
     if not DOTENV.is_file():
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
         DOTENV.write_text(
-            'ACTION_WATCH_DISCOVERY_ROOT=~/projects/python/\n'
+            '# path to search recursively for `.github/workflows/*.yml` files\n'
+            'ACTION_WATCH_DISCOVERY_ROOT=~/projects/python/\n\n'
+            '# the following are boolean flags; use 0 or 1\n'
             'ACTION_WATCH_CACHE_PATHS=1\n'
             'ACTION_WATCH_CACHE_REQUESTS=1\n'
             'ACTION_WATCH_DEBUG=0\n'
