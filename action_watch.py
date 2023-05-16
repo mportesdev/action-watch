@@ -184,6 +184,8 @@ def _setup_env():
             '# path to search recursively for `.github/workflows/*.yml` files\n'
             '# (if empty or not set, falls back to current working directory)\n'
             'ACTION_WATCH_DISCOVERY_ROOT=~/projects/python/\n\n'
+            '# string to be used as the Authorization header of HTTP requests\n'
+            'ACTION_WATCH_AUTH_HEADER=\n\n'
             '# the following are boolean flags; use 0 or 1\n'
             'ACTION_WATCH_CACHE_PATHS=1\n'
             'ACTION_WATCH_CACHE_REQUESTS=1\n'
@@ -217,6 +219,13 @@ def main():
         session = requests_cache.CachedSession(os.fspath(HTTP_CACHE))
     else:
         session = requests.Session()
+
+    auth_header = os.getenv('ACTION_WATCH_AUTH_HEADER')
+    if auth_header:
+        logger.debug('Using Authorization header')
+        HEADERS['Authorization'] = auth_header
+    else:
+        logger.debug('No authentication')
 
     for repo, usages in action_usages.items():
         _check_repo(repo, usages)
