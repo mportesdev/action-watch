@@ -94,7 +94,7 @@ def _get_paginated_data(url):
             response.raise_for_status()
         except requests.HTTPError:
             logger.warning(f'response status {response.status_code} from url {url}')
-            return
+            raise
 
         page_data = response.json()
         logger.debug(f'page {query_params.get("page", 1)}: {len(page_data)} items')
@@ -136,12 +136,13 @@ def _sha_info_for_endpoint(repo, endpoint):
 
 def _check_repo(repo, used_revs):
     print(f'[{repo}]')
-    sha_for_tag = _sha_info_for_endpoint(repo, 'tags')
-    sha_for_branch = _sha_info_for_endpoint(repo, 'branches')
-    revs = sha_for_tag | sha_for_branch
-    if not revs:
+    try:
+        sha_for_tag = _sha_info_for_endpoint(repo, 'tags')
+        sha_for_branch = _sha_info_for_endpoint(repo, 'branches')
+    except requests.HTTPError:
         print('Skipped')
         return
+    revs = sha_for_tag | sha_for_branch
 
     latest_tag = _get_latest_release_tag(repo)
     latest_sha = sha_for_tag[latest_tag]
