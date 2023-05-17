@@ -122,18 +122,22 @@ def _get_latest_release_tag(repo):
     return response.json()['tag_name']
 
 
+def _sha_info_for_endpoint(repo, endpoint):
+    """Return a mapping from revision (tag or branch) name to commit SHA.
+
+    `endpoint` should be 'tags' or 'branches'.
+    """
+    return {
+        item['name']: item['commit']['sha'][:7]
+        for page_data in _get_paginated_data(f'{API_URL}/repos/{repo}/{endpoint}')
+        for item in page_data
+    }
+
+
 def _check_repo(repo, used_revs):
     print(f'[{repo}]')
-    sha_for_tag = {}
-    for page_data in _get_paginated_data(f'{API_URL}/repos/{repo}/tags'):
-        for item in page_data:
-            sha_for_tag[item['name']] = item['commit']['sha'][:7]
-
-    sha_for_branch = {}
-    for page_data in _get_paginated_data(f'{API_URL}/repos/{repo}/branches'):
-        for item in page_data:
-            sha_for_branch[item['name']] = item['commit']['sha'][:7]
-
+    sha_for_tag = _sha_info_for_endpoint(repo, 'tags')
+    sha_for_branch = _sha_info_for_endpoint(repo, 'branches')
     revs = sha_for_tag | sha_for_branch
     if not revs:
         print('Skipped')
