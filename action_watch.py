@@ -179,6 +179,10 @@ def _get_env_flag(key):
     return bool(value) and value != '0'
 
 
+def _get_env_string(key):
+    return os.getenv(f'ACTION_WATCH_{key}', '')
+
+
 def _setup_env():
     """Create a default `.env` file if necessary.
     Load `.env` into environment.
@@ -213,7 +217,7 @@ def main():
         format='<level>{level}: {message}</level>',
     )
 
-    discovery_root = os.getenv('ACTION_WATCH_DISCOVERY_ROOT', '')
+    discovery_root = _get_env_string('DISCOVERY_ROOT')
     if not discovery_root:
         logger.debug('Discovery root not specified, falling back to cwd')
     action_usages = _get_usages(
@@ -231,13 +235,13 @@ def main():
         session = requests.Session()
 
     global auth
-    auth_helper = os.getenv('ACTION_WATCH_AUTH_HELPER')
+    auth_helper = _get_env_string('AUTH_HELPER')
     if auth_helper:
         logger.debug('Using authentication handler')
         auth = HelperAuth(auth_helper, cache_token=True)
     else:
         auth = None
-        auth_header = os.getenv('ACTION_WATCH_AUTH_HEADER')
+        auth_header = _get_env_string('AUTH_HEADER')
         if auth_header:
             logger.debug('Using Authorization header')
             HEADERS['Authorization'] = auth_header
