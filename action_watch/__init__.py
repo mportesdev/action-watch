@@ -24,26 +24,26 @@ HEADERS = {'Accept': 'application/vnd.github+json'}
 
 def _get_usages(discovery_root, use_cache=False):
 
-    def _discover_workflow_files():
-        paths = None
+    def _cached_workflow_paths():
         if use_cache:
             try:
                 with PATH_CACHE.open(encoding='utf8') as f:
                     logger.debug(f'Reading filenames from {PATH_CACHE}')
-                    paths = yaml.safe_load(f)
+                    return yaml.safe_load(f)
             except FileNotFoundError:
                 logger.debug(f'{PATH_CACHE} not found')
-        if paths is None:
-            print(f'Discovering workflow files under {discovery_root}')
-            paths = [
-                os.fspath(path)
-                for path in discovery_root.rglob('.github/workflows/*.yml')
-            ]
-            if use_cache:
-                CACHE_DIR.mkdir(parents=True, exist_ok=True)
-                with PATH_CACHE.open('w', encoding='utf8') as f:
-                    logger.debug(f'Writing filenames to {PATH_CACHE}')
-                    yaml.safe_dump(paths, f)
+
+    def _discovered_workflow_paths():
+        print(f'Discovering workflow files under {discovery_root}')
+        paths = [
+            os.fspath(path)
+            for path in discovery_root.rglob('.github/workflows/*.yml')
+        ]
+        if use_cache:
+            CACHE_DIR.mkdir(parents=True, exist_ok=True)
+            with PATH_CACHE.open('w', encoding='utf8') as f:
+                logger.debug(f'Writing filenames to {PATH_CACHE}')
+                yaml.safe_dump(paths, f)
         logger.debug('\n' + '\n'.join(paths))
         return paths
 
@@ -54,7 +54,7 @@ def _get_usages(discovery_root, use_cache=False):
             for action_spec in values_for_key(workflow_data, 'uses'):
                 yield file_path, action_spec
 
-    paths = _discover_workflow_files()
+    paths = _cached_workflow_paths() or _discovered_workflow_paths()
     result = {}
     for file_path, action_spec in _read_workflow_files(paths):
         repo, revision = action_spec.split('@')
