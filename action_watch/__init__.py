@@ -1,5 +1,6 @@
 import os
 import re
+import shutil
 import sys
 from pathlib import Path
 
@@ -11,6 +12,7 @@ from handpick import values_for_key
 from helper_auth import HelperAuth
 from loguru import logger
 
+DOTENV_DEFAULT = Path(__file__).parent / '.env-default'
 CONFIG_DIR = Path.home() / '.config' / 'action-watch'
 DOTENV = CONFIG_DIR / '.env'
 CACHE_DIR = Path.home() / '.cache' / 'action-watch'
@@ -189,22 +191,7 @@ def _setup_env():
     """
     if not DOTENV.is_file():
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-        DOTENV.write_text(
-            '# path to search recursively for `.github/workflows/*.yml` files\n'
-            '# (if empty or not set, falls back to current working directory)\n'
-            'ACTION_WATCH_DISCOVERY_ROOT=~/projects/python/\n\n'
-            '# git credential helper command to be used by an authentication handler'
-            ' to authenticate to GitHub\n'
-            '# (see https://pypi.org/project/helper-auth/ for more info)\n'
-            'ACTION_WATCH_AUTH_HELPER=\n\n'
-            '# string to be used as the Authorization header of HTTP requests\n'
-            '# (ignored if ACTION_WATCH_AUTH_HELPER is set)\n'
-            'ACTION_WATCH_AUTH_HEADER=\n\n'
-            '# the following are boolean flags; use 0 or 1\n'
-            'ACTION_WATCH_CACHE_PATHS=1\n'
-            'ACTION_WATCH_CACHE_REQUESTS=1\n'
-            'ACTION_WATCH_DEBUG=0\n'
-        )
+        shutil.copyfile(DOTENV_DEFAULT, DOTENV)
     load_dotenv(DOTENV)
 
 
