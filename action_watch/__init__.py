@@ -35,16 +35,16 @@ def _get_usages(discovery_root, use_cache=False):
 
     def _discovered_workflow_paths():
         print(f'Discovering workflow files under {discovery_root}')
-        paths = [
-            os.fspath(path)
-            for path in discovery_root.rglob('.github/workflows/*.yml')
-        ]
+        paths = []
+        for path in discovery_root.rglob('.github/workflows/*.yml'):
+            path_str = os.fspath(path)
+            paths.append(path_str)
+            logger.debug(path_str)
         if use_cache:
             CACHE_DIR.mkdir(parents=True, exist_ok=True)
             with PATH_CACHE.open('w', encoding='utf8') as f:
                 logger.debug(f'Writing filenames to {PATH_CACHE}')
                 yaml.safe_dump(paths, f)
-        logger.debug('\n' + '\n'.join(paths))
         return paths
 
     def _read_workflow_files(paths):
