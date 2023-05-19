@@ -13,6 +13,9 @@ dependencies = [
     "helper-auth",
 ]
 
+[project.optional-dependencies]
+dev = ["pytest", "pytest-mock"]
+
 [project.scripts]
 action-watch = "action_watch:main"
 
