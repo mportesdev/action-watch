@@ -40,7 +40,9 @@ def _get_usages(discovery_root, use_cache=False):
             path_str = os.fspath(path)
             paths.append(path_str)
             logger.debug(path_str)
-        if use_cache:
+        if not paths:
+            logger.debug('No workflow files found')
+        elif use_cache:
             CACHE_DIR.mkdir(parents=True, exist_ok=True)
             with PATH_CACHE.open('w', encoding='utf8') as f:
                 logger.debug(f'Writing filenames to {PATH_CACHE}')
