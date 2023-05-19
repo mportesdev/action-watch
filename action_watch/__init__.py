@@ -1,20 +1,17 @@
 import os
 import re
-import shutil
 import sys
 from pathlib import Path
 
 import requests
 import requests_cache
 import yaml
-from dotenv import load_dotenv
 from handpick import values_for_key
 from helper_auth import HelperAuth
 from loguru import logger
 
-DOTENV_DEFAULT = Path(__file__).parent / '.env-default'
-CONFIG_DIR = Path.home() / '.config' / 'action-watch'
-DOTENV = CONFIG_DIR / '.env'
+from ._environment import _setup_env, _get_env_flag, _get_env_string
+
 CACHE_DIR = Path.home() / '.cache' / 'action-watch'
 PATH_CACHE = CACHE_DIR / '.yml_files.yaml'
 HTTP_CACHE = CACHE_DIR / '.cache.sqlite3'
@@ -176,25 +173,6 @@ def _check_repo(repo, used_revs):
         print(f'Recommended update {rev!r} -> {recommended!r} in files:')
         for file in files:
             print(f'  {file}')
-
-
-def _get_env_flag(key):
-    value = os.getenv(f'ACTION_WATCH_{key}')
-    return bool(value) and value != '0'
-
-
-def _get_env_string(key):
-    return os.getenv(f'ACTION_WATCH_{key}', '')
-
-
-def _setup_env():
-    """Create a default `.env` file if necessary.
-    Load `.env` into environment.
-    """
-    if not DOTENV.is_file():
-        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(DOTENV_DEFAULT, DOTENV)
-    load_dotenv(DOTENV)
 
 
 def main():
