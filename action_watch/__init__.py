@@ -19,16 +19,16 @@ API_URL = 'https://api.github.com'
 HEADERS = {'Accept': 'application/vnd.github+json'}
 
 
-def _get_usages(discovery_root, use_cache=False):
+def _get_usages(discovery_root, filename_cache=None):
 
     def _cached_workflow_paths():
-        if use_cache:
+        if filename_cache:
             try:
-                with PATH_CACHE.open(encoding='utf8') as f:
-                    logger.debug(f'Reading filenames from {PATH_CACHE}')
+                with filename_cache.open(encoding='utf8') as f:
+                    logger.debug(f'Reading filenames from {filename_cache}')
                     return yaml.safe_load(f)
             except FileNotFoundError:
-                logger.debug(f'{PATH_CACHE} not found')
+                logger.debug(f'{filename_cache} not found')
 
     def _discovered_workflow_paths():
         print(f'Discovering workflow files under {discovery_root}')
@@ -39,10 +39,10 @@ def _get_usages(discovery_root, use_cache=False):
             logger.debug(path_str)
         if not paths:
             logger.debug('No workflow files found')
-        elif use_cache:
+        elif filename_cache:
             CACHE_DIR.mkdir(parents=True, exist_ok=True)
-            with PATH_CACHE.open('w', encoding='utf8') as f:
-                logger.debug(f'Writing filenames to {PATH_CACHE}')
+            with filename_cache.open('w', encoding='utf8') as f:
+                logger.debug(f'Writing filenames to {filename_cache}')
                 yaml.safe_dump(paths, f)
         return paths
 
@@ -189,7 +189,7 @@ def main():
         logger.debug('Discovery root not specified, falling back to cwd')
     action_usages = _get_usages(
         Path(discovery_root).expanduser(),
-        use_cache=_get_env_flag('CACHE_PATHS'),
+        filename_cache=PATH_CACHE if _get_env_flag('CACHE_PATHS') else None,
     )
     if not action_usages:
         print('No action usages found')

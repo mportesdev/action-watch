@@ -48,29 +48,26 @@ def missing_path_cache(tmp_path):
     return tmp_path / 'files.yaml'
 
 
-def test_get_usages(mocker, root_dir, existing_path_cache, discovered_file):
-    """With `use_cache=False` the cache is ignored and files are
-    discovered under the discovery root.
+def test_get_usages(root_dir, existing_path_cache, discovered_file):
+    """If `filename_cache` is None, files will be discovered under
+    the discovery root.
     """
-    mocker.patch('action_watch.PATH_CACHE', existing_path_cache)
-    result = _get_usages(root_dir, use_cache=False)
+    result = _get_usages(root_dir, filename_cache=None)
     assert result == {'owner1/repo1': {'v1': [f'{discovered_file}']}}
 
 
-def test_get_usages_read_cache(mocker, root_dir, existing_path_cache, cached_file):
-    """With `use_cache=True` filenames are read from the cache and
-    discovery is skipped.
+def test_get_usages_read_cache(root_dir, existing_path_cache, cached_file):
+    """If `filename_cache` is specified, filenames will be read from
+    the cache and discovery will be skipped.
     """
-    mocker.patch('action_watch.PATH_CACHE', existing_path_cache)
-    result = _get_usages(root_dir, use_cache=True)
+    result = _get_usages(root_dir, filename_cache=existing_path_cache)
     assert result == {'owner2/repo2': {'v2': [f'{cached_file}']}}
 
 
-def test_get_usages_write_cache(mocker, root_dir, missing_path_cache, discovered_file):
-    """With `use_cache=True`, if there is no cache, files are discovered
-    under the discovery root and filenames are written to cache.
+def test_get_usages_write_cache(root_dir, missing_path_cache, discovered_file):
+    """If `filename_cache` is specified but doesn't exist, files will be
+    discovered under the discovery root and filenames written to cache.
     """
-    mocker.patch('action_watch.PATH_CACHE', missing_path_cache)
-    result = _get_usages(root_dir, use_cache=True)
+    result = _get_usages(root_dir, filename_cache=missing_path_cache)
     assert result == {'owner1/repo1': {'v1': [f'{discovered_file}']}}
     assert missing_path_cache.read_text(encoding='utf8') == f'- {discovered_file}\n'
