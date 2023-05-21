@@ -135,14 +135,9 @@ def _sha_info_for_endpoint(repo, endpoint):
     }
 
 
-def _check_repo(repo, used_revs):
-    print(f'[{repo}]')
-    try:
-        sha_for_tag = _sha_info_for_endpoint(repo, 'tags')
-        sha_for_branch = _sha_info_for_endpoint(repo, 'branches')
-    except requests.HTTPError:
-        print('Skipped')
-        return
+def _check_repo(repo, usages):
+    sha_for_tag = _sha_info_for_endpoint(repo, 'tags')
+    sha_for_branch = _sha_info_for_endpoint(repo, 'branches')
     revs = sha_for_tag | sha_for_branch
 
     latest_tag = _get_latest_release_tag(repo)
@@ -152,23 +147,34 @@ def _check_repo(repo, used_revs):
     current_revs = [rev for rev, sha in revs.items() if sha == latest_sha]
     logger.info(f'revisions pointing to commit {latest_sha}: {current_revs}')
 
-    outdated_used = {
-        rev: files for rev, files in used_revs.items()
+    outdated_usages = {
+        rev: files for rev, files in usages.items()
         if rev in revs and rev not in current_revs
     }
-    logger.debug(f'outdated revisions: {list(outdated_used)}')
+    logger.debug(f'outdated revisions: {list(outdated_usages)}')
 
-    unknown_used = {rev: files for rev, files in used_revs.items() if rev not in revs}
-    logger.debug(f'unknown revisions: {list(unknown_used)}')
+    unknown_usages = {rev: files for rev, files in usages.items() if rev not in revs}
+    logger.debug(f'unknown revisions: {list(unknown_usages)}')
 
-    updatable = outdated_used | unknown_used
+    updatable = outdated_usages | unknown_usages
+    current_tags = [tag for tag, sha in sha_for_tag.items() if sha == latest_sha]
+    recommended = sorted(current_tags)[0]
+    return updatable, recommended
+
+
+def _report_repo(repo, usages):
+    print(f'[{repo}]')
+    try:
+        updatable, recommended = _check_repo(repo, usages)
+    except requests.HTTPError:
+        print('Skipped')
+        return
+
     if not updatable:
         print('OK')
         return
 
     print('Found outdated')
-    current_tags = [tag for tag, sha in sha_for_tag.items() if sha == latest_sha]
-    recommended = sorted(current_tags)[0]
     for rev, files in updatable.items():
         print(f'Recommended update {rev!r} -> {recommended!r} in files:')
         for file in files:
@@ -216,7 +222,7 @@ def main():
             logger.debug('No authentication')
 
     for repo, usages in action_usages.items():
-        _check_repo(repo, usages)
+        _report_repo(repo, usages)
 
 
 if __name__ == '__main__':

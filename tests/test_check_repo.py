@@ -27,10 +27,8 @@ def tag_data():
     return iter([page_data])
 
 
-def test_check_repo(capsys, mocker, tag_data):
+def test_check_repo(mocker, tag_data):
     mocker.patch('action_watch._get_paginated_data', return_value=tag_data)
     mocker.patch('action_watch._get_latest_release_tag', return_value='v2.0.0')
-    _check_repo('owner1/repo1', {'v1': ['1.yml']})
-    stdout = capsys.readouterr().out
-    assert "Recommended update 'v1' -> 'v2'" in stdout
-    assert "1.yml" in stdout
+    result = _check_repo('owner1/repo1', {'v1': ['1.yml']})
+    assert result == ({'v1': ['1.yml']}, 'v2')
