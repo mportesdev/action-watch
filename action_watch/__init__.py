@@ -100,7 +100,7 @@ def _get_paginated_data(url):
 
         page_data = response.json()
         logger.debug(f'page {query_params.get("page", 1)}: {len(page_data)} items')
-        yield page_data
+        yield from page_data
 
         next_page = _next_page_number(response.headers)
         if next_page is None:
@@ -130,8 +130,7 @@ def _sha_info_for_endpoint(repo, endpoint):
     """
     return {
         item['name']: item['commit']['sha'][:7]
-        for page_data in _get_paginated_data(f'{API_URL}/repos/{repo}/{endpoint}')
-        for item in page_data
+        for item in _get_paginated_data(f'{API_URL}/repos/{repo}/{endpoint}')
     }
 
 

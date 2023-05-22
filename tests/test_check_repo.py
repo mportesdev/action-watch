@@ -24,7 +24,7 @@ def tag_data():
             },
         },
     ]
-    return iter([page_data])
+    return iter(page_data)
 
 
 def test_check_repo(mocker, tag_data):
