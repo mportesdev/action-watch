@@ -66,22 +66,22 @@ def _get_usages(discovery_root, filename_cache=None):
     return result
 
 
+def _next_page_number(headers):
+    if 'link' not in headers:
+        return
+    page_dispatch = {
+        re_match['label']: re_match['number']
+        for re_match in re.finditer(
+            r'page=(?P<number>\d+).+?rel="(?P<label>\w+)"',
+            headers['link']
+        )
+    }
+    result = page_dispatch.get('next')
+    logger.debug(f'pagination: {page_dispatch}, next page: {result}')
+    return result
+
+
 def _get_paginated_data(url):
-
-    def _next_page_number(headers):
-        if 'link' not in headers:
-            return
-        page_dispatch = {
-            re_match['label']: re_match['number']
-            for re_match in re.finditer(
-                r'page=(?P<number>\d+).+?rel="(?P<label>\w+)"',
-                headers['link']
-            )
-        }
-        result = page_dispatch.get('next')
-        logger.debug(f'pagination: {page_dispatch}, next page: {result}')
-        return result
-
     query_params = {}
     while True:
         with session:
