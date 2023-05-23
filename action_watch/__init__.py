@@ -4,19 +4,16 @@ import sys
 from pathlib import Path
 
 import requests
-import requests_cache
 import yaml
 from handpick import values_for_key
-from helper_auth import HelperAuth
 from loguru import logger
 
+from ._api import APICaller
 from ._environment import _setup_env, _get_env_flag, _get_env_string
 
 CACHE_DIR = Path.home() / '.cache' / 'action-watch'
 PATH_CACHE = CACHE_DIR / '.yml_files.yaml'
-HTTP_CACHE = CACHE_DIR / '.cache.sqlite3'
 API_URL = 'https://api.github.com'
-HEADERS = {'Accept': 'application/vnd.github+json'}
 
 
 def _get_usages(discovery_root, filename_cache=None):
@@ -84,8 +81,7 @@ def _next_page_number(headers):
 def _get_paginated_data(url):
     query_params = {}
     while True:
-        with session:
-            response = session.get(url, headers=HEADERS, params=query_params, auth=auth)
+        response = api_caller.get(url, params=query_params)
         cached = getattr(response, "from_cache", False)
         logger.debug(f'cached response: {cached}')
         if not cached:
@@ -109,10 +105,7 @@ def _get_paginated_data(url):
 
 
 def _get_latest_release_tag(repo):
-    with session:
-        response = session.get(
-            f'{API_URL}/repos/{repo}/releases/latest', headers=HEADERS, auth=auth
-        )
+    response = api_caller.get(f'{API_URL}/repos/{repo}/releases/latest')
     cached = getattr(response, "from_cache", False)
     logger.debug(f'cached response: {cached}')
     if not cached:
@@ -200,25 +193,12 @@ def main():
         print('No action usages found')
         return
 
-    global session
-    if _get_env_flag('CACHE_REQUESTS'):
-        session = requests_cache.CachedSession(os.fspath(HTTP_CACHE))
-    else:
-        session = requests.Session()
-
-    global auth
-    auth_helper = _get_env_string('AUTH_HELPER')
-    if auth_helper:
-        logger.info('Using authentication handler')
-        auth = HelperAuth(auth_helper, cache_token=True)
-    else:
-        auth = None
-        auth_header = _get_env_string('AUTH_HEADER')
-        if auth_header:
-            logger.info('Using Authorization header')
-            HEADERS['Authorization'] = auth_header
-        else:
-            logger.info('No authentication')
+    global api_caller
+    api_caller = APICaller(
+        _get_env_flag('CACHE_REQUESTS'),
+        _get_env_string('AUTH_HELPER'),
+        _get_env_string('AUTH_HEADER'),
+    )
 
     for repo, usages in action_usages.items():
         _report_repo(repo, usages)
