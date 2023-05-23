@@ -25,10 +25,10 @@ def _get_usages(discovery_root, filename_cache=None):
         if filename_cache:
             try:
                 with filename_cache.open(encoding='utf8') as f:
-                    logger.debug(f'Reading filenames from {filename_cache}')
+                    logger.info(f'Reading filenames from {filename_cache}')
                     return yaml.safe_load(f)
             except FileNotFoundError:
-                logger.debug(f'{filename_cache} not found')
+                logger.info(f'{filename_cache} not found')
 
     def _discovered_workflow_paths():
         print(f'Discovering workflow files under {discovery_root}')
@@ -38,11 +38,11 @@ def _get_usages(discovery_root, filename_cache=None):
             paths.append(path_str)
             logger.debug(path_str)
         if not paths:
-            logger.debug('No workflow files found')
+            logger.info('No workflow files found')
         elif filename_cache:
             CACHE_DIR.mkdir(parents=True, exist_ok=True)
             with filename_cache.open('w', encoding='utf8') as f:
-                logger.debug(f'Writing filenames to {filename_cache}')
+                logger.info(f'Writing filenames to {filename_cache}')
                 yaml.safe_dump(paths, f)
         return paths
 
@@ -95,7 +95,7 @@ def _get_paginated_data(url):
         try:
             response.raise_for_status()
         except requests.HTTPError:
-            logger.warning(f'response status {response.status_code} from url {url}')
+            logger.info(f'Response status {response.status_code} from url {url}')
             raise
 
         page_data = response.json()
@@ -141,10 +141,10 @@ def _check_repo(repo, usages):
 
     latest_tag = _get_latest_release_tag(repo)
     latest_sha = sha_for_tag[latest_tag]
-    logger.info(f'latest release tag: {latest_tag} (commit {latest_sha})')
+    logger.debug(f'latest release tag: {latest_tag} (commit {latest_sha})')
 
     current_revs = [rev for rev, sha in revs.items() if sha == latest_sha]
-    logger.info(f'revisions pointing to commit {latest_sha}: {current_revs}')
+    logger.debug(f'revisions pointing to commit {latest_sha}: {current_revs}')
 
     outdated_usages = {
         rev: files for rev, files in usages.items()
@@ -191,7 +191,7 @@ def main():
 
     discovery_root = _get_env_string('DISCOVERY_ROOT')
     if not discovery_root:
-        logger.debug('Discovery root not specified, falling back to cwd')
+        logger.info('Discovery root not specified, falling back to cwd')
     action_usages = _get_usages(
         Path(discovery_root).expanduser(),
         filename_cache=PATH_CACHE if _get_env_flag('CACHE_PATHS') else None,
@@ -209,16 +209,16 @@ def main():
     global auth
     auth_helper = _get_env_string('AUTH_HELPER')
     if auth_helper:
-        logger.debug('Using authentication handler')
+        logger.info('Using authentication handler')
         auth = HelperAuth(auth_helper, cache_token=True)
     else:
         auth = None
         auth_header = _get_env_string('AUTH_HEADER')
         if auth_header:
-            logger.debug('Using Authorization header')
+            logger.info('Using Authorization header')
             HEADERS['Authorization'] = auth_header
         else:
-            logger.debug('No authentication')
+            logger.info('No authentication')
 
     for repo, usages in action_usages.items():
         _report_repo(repo, usages)
