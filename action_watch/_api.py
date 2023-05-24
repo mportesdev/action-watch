@@ -22,7 +22,10 @@ class APICaller:
             logger.info('Setting up requests.Session')
             self._session = requests.Session()
 
-        self._headers = {'Accept': 'application/vnd.github+json'}
+        self._headers = {
+            'Accept': 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
+        }
         if auth_helper:
             logger.info('Using authentication handler')
             self._auth = HelperAuth(auth_helper, cache_token=True)
