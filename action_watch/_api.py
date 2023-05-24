@@ -11,6 +11,8 @@ HTTP_CACHE = CACHE_DIR / '.cache.sqlite3'
 
 
 class APICaller:
+    errors = (requests.HTTPError,)
+
     def __init__(self, cached, auth_helper, auth_header):
         if cached:
             logger.info('Setting up requests_cache.CachedSession')
@@ -36,4 +38,9 @@ class APICaller:
             response = session.get(
                 url, headers=self._headers, auth=self._auth, **kwargs
             )
+        try:
+            response.raise_for_status()
+        except self.errors:
+            logger.info(f'Response status {response.status_code} from url {url}')
+            raise
         return response

@@ -3,7 +3,6 @@ import re
 import sys
 from pathlib import Path
 
-import requests
 import yaml
 from handpick import values_for_key
 from loguru import logger
@@ -88,11 +87,6 @@ def _get_paginated_data(url):
             logger.debug(
                 f'rate limit remaining: {response.headers["X-RateLimit-Remaining"]}'
             )
-        try:
-            response.raise_for_status()
-        except requests.HTTPError:
-            logger.info(f'Response status {response.status_code} from url {url}')
-            raise
 
         page_data = response.json()
         logger.debug(f'page {query_params.get("page", 1)}: {len(page_data)} items')
@@ -112,7 +106,6 @@ def _get_latest_release_tag(repo):
         logger.debug(
             f'rate limit remaining: {response.headers["X-RateLimit-Remaining"]}'
         )
-    response.raise_for_status()
     return response.json()['tag_name']
 
 
@@ -158,7 +151,7 @@ def _report_repo(repo, usages):
     print(f'[{repo}]')
     try:
         updatable, recommended = _check_repo(repo, usages)
-    except requests.HTTPError:
+    except api_caller.errors:
         print('Skipped')
         return
 
