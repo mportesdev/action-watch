@@ -81,13 +81,6 @@ def _get_paginated_data(url):
     query_params = {}
     while True:
         response = api_caller.get(url, params=query_params)
-        cached = getattr(response, "from_cache", False)
-        logger.debug(f'cached response: {cached}')
-        if not cached:
-            logger.debug(
-                f'rate limit remaining: {response.headers["X-RateLimit-Remaining"]}'
-            )
-
         page_data = response.json()
         logger.debug(f'page {query_params.get("page", 1)}: {len(page_data)} items')
         yield from page_data
@@ -100,12 +93,6 @@ def _get_paginated_data(url):
 
 def _get_latest_release_tag(repo):
     response = api_caller.get(f'{API_URL}/repos/{repo}/releases/latest')
-    cached = getattr(response, "from_cache", False)
-    logger.debug(f'cached response: {cached}')
-    if not cached:
-        logger.debug(
-            f'rate limit remaining: {response.headers["X-RateLimit-Remaining"]}'
-        )
     return response.json()['tag_name']
 
 

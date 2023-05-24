@@ -38,6 +38,12 @@ class APICaller:
             response = session.get(
                 url, headers=self._headers, auth=self._auth, **kwargs
             )
+        cached = getattr(response, "from_cache", False)
+        logger.debug(f'cached response: {cached}')
+        if not cached:
+            logger.debug(
+                f'rate limit remaining: {response.headers["X-RateLimit-Remaining"]}'
+            )
         try:
             response.raise_for_status()
         except self.errors:
