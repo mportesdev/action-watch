@@ -20,10 +20,10 @@ def _get_usages(discovery_root, filename_cache=None):
         if filename_cache:
             try:
                 with filename_cache.open(encoding='utf8') as f:
-                    logger.info(f'Reading filenames from {filename_cache}')
+                    logger.debug(f'Reading filenames from {filename_cache}')
                     return yaml.safe_load(f)
             except FileNotFoundError:
-                logger.info(f'{filename_cache} not found')
+                logger.debug(f'{filename_cache} not found')
 
     def _discovered_workflow_paths():
         print(f'Discovering workflow files under {discovery_root}')
@@ -33,11 +33,11 @@ def _get_usages(discovery_root, filename_cache=None):
             paths.append(path_str)
             logger.debug(path_str)
         if not paths:
-            logger.info('No workflow files found')
+            logger.debug('No workflow files found')
         elif filename_cache:
             CACHE_DIR.mkdir(parents=True, exist_ok=True)
             with filename_cache.open('w', encoding='utf8') as f:
-                logger.info(f'Writing filenames to {filename_cache}')
+                logger.debug(f'Writing filenames to {filename_cache}')
                 yaml.safe_dump(paths, f)
         return paths
 
@@ -163,7 +163,7 @@ def main():
 
     discovery_root = _get_env_string('DISCOVERY_ROOT')
     if not discovery_root:
-        logger.info('Discovery root not specified, falling back to cwd')
+        logger.debug('Discovery root not specified, falling back to cwd')
     action_usages = _get_usages(
         Path(discovery_root).expanduser(),
         filename_cache=PATH_CACHE if _get_env_flag('CACHE_PATHS') else None,

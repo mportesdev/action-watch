@@ -16,10 +16,10 @@ class APICaller:
 
     def __init__(self, cached, auth_helper, auth_header):
         if cached:
-            logger.info('Setting up requests_cache.CachedSession')
+            logger.debug('Setting up requests_cache.CachedSession')
             self._session = requests_cache.CachedSession(os.fspath(HTTP_CACHE))
         else:
-            logger.info('Setting up requests.Session')
+            logger.debug('Setting up requests.Session')
             self._session = requests.Session()
 
         self._headers = {
@@ -27,15 +27,15 @@ class APICaller:
             'X-GitHub-Api-Version': '2022-11-28',
         }
         if auth_helper:
-            logger.info('Using authentication handler')
+            logger.debug('Using authentication handler')
             self._auth = HelperAuth(auth_helper, cache_token=True)
         else:
             self._auth = None
             if auth_header:
-                logger.info('Using Authorization header')
+                logger.debug('Using Authorization header')
                 self._headers['Authorization'] = auth_header
             else:
-                logger.info('No authentication')
+                logger.debug('No authentication')
 
     def get(self, api_endpoint, **kwargs):
         url = f'{self.api_base_url}/{api_endpoint}'
@@ -52,6 +52,6 @@ class APICaller:
         try:
             response.raise_for_status()
         except self.errors:
-            logger.info(f'Response status {response.status_code} from url {url}')
+            logger.debug(f'Response status {response.status_code} from url {url}')
             raise
         return response
