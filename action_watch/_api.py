@@ -11,6 +11,7 @@ HTTP_CACHE = CACHE_DIR / '.cache.sqlite3'
 
 
 class APICaller:
+    api_base_url = 'https://api.github.com'
     errors = (requests.HTTPError,)
 
     def __init__(self, cached, auth_helper, auth_header):
@@ -33,7 +34,8 @@ class APICaller:
             else:
                 logger.info('No authentication')
 
-    def get(self, url, **kwargs):
+    def get(self, api_endpoint, **kwargs):
+        url = f'{self.api_base_url}/{api_endpoint}'
         with self._session as session:
             response = session.get(
                 url, headers=self._headers, auth=self._auth, **kwargs

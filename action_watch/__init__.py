@@ -12,7 +12,6 @@ from ._environment import _setup_env, _get_env_flag, _get_env_string
 
 CACHE_DIR = Path.home() / '.cache' / 'action-watch'
 PATH_CACHE = CACHE_DIR / '.yml_files.yaml'
-API_URL = 'https://api.github.com'
 
 
 def _get_usages(discovery_root, filename_cache=None):
@@ -77,10 +76,10 @@ def _next_page_number(headers):
     return result
 
 
-def _get_paginated_data(url):
+def _get_paginated_data(api_endpoint):
     query_params = {}
     while True:
-        response = api_caller.get(url, params=query_params)
+        response = api_caller.get(api_endpoint, params=query_params)
         page_data = response.json()
         logger.debug(f'page {query_params.get("page", 1)}: {len(page_data)} items')
         yield from page_data
@@ -92,7 +91,7 @@ def _get_paginated_data(url):
 
 
 def _get_latest_release_tag(repo):
-    response = api_caller.get(f'{API_URL}/repos/{repo}/releases/latest')
+    response = api_caller.get(f'repos/{repo}/releases/latest')
     return response.json()['tag_name']
 
 
@@ -103,7 +102,7 @@ def _sha_info_for_endpoint(repo, endpoint):
     """
     return {
         item['name']: item['commit']['sha'][:7]
-        for item in _get_paginated_data(f'{API_URL}/repos/{repo}/{endpoint}')
+        for item in _get_paginated_data(f'repos/{repo}/{endpoint}')
     }
 
 
