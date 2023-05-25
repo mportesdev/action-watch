@@ -162,7 +162,7 @@ def main():
     if not discovery_root:
         logger.debug('Discovery root not specified, falling back to cwd')
     action_usages = _get_usages(
-        Path(discovery_root).expanduser(),
+        Path(discovery_root).expanduser().resolve(),
         filename_cache=PATH_CACHE if _get_env_flag('CACHE_PATHS') else None,
     )
     if not action_usages:
