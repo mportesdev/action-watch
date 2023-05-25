@@ -1,7 +1,6 @@
 import os
 import re
 import sys
-from pathlib import Path
 
 import yaml
 from handpick import values_for_key
@@ -9,7 +8,7 @@ from loguru import logger
 
 from ._api import APICaller
 from ._environment import _setup_env, _get_env_flag, _get_env_string
-from ._paths import CACHE_DIR
+from ._paths import CACHE_DIR, _abs_path
 
 PATH_CACHE = CACHE_DIR / '.yml_files.yaml'
 
@@ -162,7 +161,7 @@ def main():
     if not discovery_root:
         logger.debug('Discovery root not specified, falling back to cwd')
     action_usages = _get_usages(
-        Path(discovery_root).expanduser().resolve(),
+        _abs_path(discovery_root),
         filename_cache=PATH_CACHE if _get_env_flag('CACHE_PATHS') else None,
     )
     if not action_usages:
