@@ -26,7 +26,7 @@ def _get_usages(discovery_root, filename_cache=None):
                 logger.debug(f'{filename_cache} not found')
 
     def _discovered_workflow_paths():
-        print(f'Discovering workflow files under {discovery_root}')
+        logger.info(f'Discovering workflow files under {discovery_root}')
         paths = []
         for path in discovery_root.rglob('.github/workflows/*.yml'):
             path_str = os.fspath(path)
@@ -134,32 +134,29 @@ def _check_repo(repo, usages):
 
 
 def _report_repo(repo, usages):
-    print(f'[{repo}]')
+    logger.info(f'[{repo}]')
     try:
         updatable, recommended = _check_repo(repo, usages)
     except api_caller.errors:
-        print('Skipped')
+        logger.error('Skipped')
         return
 
     if not updatable:
-        print('OK')
+        logger.success('OK')
         return
 
-    print('Found outdated')
+    logger.warning('Found outdated')
     for rev, files in updatable.items():
-        print(f'Recommended update {rev!r} -> {recommended!r} in files:')
+        logger.warning(f'Recommended update {rev!r} -> {recommended!r} in files:')
         for file in files:
-            print(f'  {file}')
+            logger.warning(f'  {file}')
 
 
 def main():
     _setup_env()
-    logger.remove()
-    logger.add(
-        sys.stderr,
-        level='DEBUG' if _get_env_flag('DEBUG') else 'WARNING',
-        format='<level>{level}: {message}</level>',
-    )
+    if not _get_env_flag('DEBUG'):
+        logger.remove()
+        logger.add(sys.stdout, level='INFO', format='<level>{message}</level>')
 
     discovery_root = _get_env_string('DISCOVERY_ROOT')
     if not discovery_root:
@@ -169,7 +166,7 @@ def main():
         filename_cache=PATH_CACHE if _get_env_flag('CACHE_PATHS') else None,
     )
     if not action_usages:
-        print('No action usages found')
+        logger.info('No action usages found')
         return
 
     global api_caller
