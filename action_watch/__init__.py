@@ -134,7 +134,7 @@ def _check_repo(repo, usages):
 
 
 def _report_repo(repo, usages):
-    logger.info(f'[{repo}]')
+    print(repo, end=' ', flush=True)
     try:
         updatable, recommended = _check_repo(repo, usages)
     except api_caller.errors:
@@ -147,9 +147,9 @@ def _report_repo(repo, usages):
 
     logger.warning('Found outdated')
     for rev, files in updatable.items():
-        logger.warning(f'Recommended update {rev!r} -> {recommended!r} in files:')
+        logger.warning(f'  Recommended update {rev!r} -> {recommended!r} in files:')
         for file in files:
-            logger.warning(f'  {file}')
+            logger.warning(f'    {file}')
 
 
 def main():
