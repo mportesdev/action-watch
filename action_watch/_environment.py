@@ -1,12 +1,12 @@
 import os
 import shutil
 from importlib.resources import files
-from pathlib import Path
 
 from dotenv import load_dotenv
 
+from ._paths import CONFIG_DIR
+
 DEFAULT_DOTENV = files('action_watch') / '.env-default'
-CONFIG_DIR = Path.home() / '.config' / 'action-watch'
 DOTENV = CONFIG_DIR / '.env'
 
 

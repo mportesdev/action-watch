@@ -9,8 +9,8 @@ from loguru import logger
 
 from ._api import APICaller
 from ._environment import _setup_env, _get_env_flag, _get_env_string
+from ._paths import CACHE_DIR
 
-CACHE_DIR = Path.home() / '.cache' / 'action-watch'
 PATH_CACHE = CACHE_DIR / '.yml_files.yaml'
 
 

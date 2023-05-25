@@ -1,12 +1,12 @@
 import os
-from pathlib import Path
 
 import requests
 import requests_cache
 from helper_auth import HelperAuth
 from loguru import logger
 
-CACHE_DIR = Path.home() / '.cache' / 'action-watch'
+from ._paths import CACHE_DIR
+
 HTTP_CACHE = CACHE_DIR / '.cache.sqlite3'
 
 
