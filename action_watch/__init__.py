@@ -136,8 +136,8 @@ def _report_repo(repo, usages):
     print(repo, end=' ', flush=True)
     try:
         updatable, recommended = _check_repo(repo, usages)
-    except api_caller.errors:
-        logger.error('Skipped')
+    except api_caller.errors as err:
+        logger.error(f'{type(err).__name__} {err.response.status_code}')
         return
 
     if not updatable:
