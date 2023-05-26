@@ -30,7 +30,9 @@ def _get_usages(discovery_root, filename_cache=None):
         for path in discovery_root.rglob('.github/workflows/*.yml'):
             path_str = os.fspath(path)
             paths.append(path_str)
+            print('.', end='', flush=True)
             logger.debug(path_str)
+        print()
         if not paths:
             logger.debug('No workflow files found')
         elif filename_cache:
