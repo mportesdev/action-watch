@@ -32,7 +32,8 @@ def _get_usages(discovery_root, filename_cache=None):
             paths.append(path_str)
             print('.', end='', flush=True)
             logger.debug(path_str)
-        print()
+        num_paths = len(paths)
+        print(f' {num_paths} {"file" if num_paths == 1 else "files"}')
         if not paths:
             logger.debug('No workflow files found')
         elif filename_cache:
