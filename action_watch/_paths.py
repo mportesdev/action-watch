@@ -1,8 +1,9 @@
 from pathlib import Path
 
-HOME_DIR = Path.home()
-CACHE_DIR = HOME_DIR / '.cache' / 'action-watch'
-CONFIG_DIR = HOME_DIR / '.config' / 'action-watch'
+import platformdirs
+
+CACHE_DIR = platformdirs.user_cache_path('action-watch')
+CONFIG_DIR = platformdirs.user_config_path('action-watch')
 
 
 def _abs_path(path):
