@@ -1,3 +1,4 @@
+import functools
 import os
 import re
 import sys
@@ -63,6 +64,15 @@ def _get_usages(discovery_root, filename_cache=None):
     return result
 
 
+@functools.cache
+def _get_api_caller():
+    return APICaller(
+        cached=_get_env_flag('CACHE_REQUESTS'),
+        auth_helper=_get_env_string('AUTH_HELPER'),
+        auth_header=_get_env_string('AUTH_HEADER'),
+    )
+
+
 def _next_page_number(headers):
     if 'link' not in headers:
         return
@@ -79,7 +89,9 @@ def _next_page_number(headers):
 
 
 def _get_paginated_data(api_endpoint, page=None):
-    response = api_caller.get(api_endpoint, params={'page': page} if page else None)
+    response = _get_api_caller().get(
+        api_endpoint, params={'page': page} if page else None
+    )
     page_data = response.json()
     logger.debug(f'page {page or 1}: {len(page_data)} items')
     yield from page_data
@@ -90,7 +102,7 @@ def _get_paginated_data(api_endpoint, page=None):
 
 
 def _get_latest_release_tag(repo):
-    response = api_caller.get(f'repos/{repo}/releases/latest')
+    response = _get_api_caller().get(f'repos/{repo}/releases/latest')
     return response.json()['tag_name']
 
 
@@ -136,7 +148,7 @@ def _report_repo(repo, usages):
     print(repo, end=' ', flush=True)
     try:
         updatable, recommended = _check_repo(repo, usages)
-    except api_caller.errors as err:
+    except _get_api_caller().errors as err:
         logger.error(f'{type(err).__name__} {err.response.status_code}')
         return
 
@@ -167,13 +179,6 @@ def main():
     if not action_usages:
         logger.info('No action usages found')
         return
-
-    global api_caller
-    api_caller = APICaller(
-        _get_env_flag('CACHE_REQUESTS'),
-        _get_env_string('AUTH_HELPER'),
-        _get_env_string('AUTH_HEADER'),
-    )
 
     for repo, usages in action_usages.items():
         _report_repo(repo, usages)

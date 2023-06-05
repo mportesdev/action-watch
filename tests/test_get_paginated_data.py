@@ -59,7 +59,7 @@ def test_get_paginated_data(mocker, responses):
     """
     caller_mock = create_autospec(APICaller, instance=True)
     caller_mock.get.side_effect = responses
-    mocker.patch.dict('action_watch.__dict__', api_caller=caller_mock)
+    mocker.patch('action_watch._get_api_caller', return_value=caller_mock)
 
     result = _get_paginated_data('repos/owner1/repo1')
 
