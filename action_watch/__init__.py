@@ -78,18 +78,15 @@ def _next_page_number(headers):
     return result
 
 
-def _get_paginated_data(api_endpoint):
-    query_params = {}
-    while True:
-        response = api_caller.get(api_endpoint, params=query_params)
-        page_data = response.json()
-        logger.debug(f'page {query_params.get("page", 1)}: {len(page_data)} items')
-        yield from page_data
+def _get_paginated_data(api_endpoint, page=None):
+    response = api_caller.get(api_endpoint, params={'page': page} if page else None)
+    page_data = response.json()
+    logger.debug(f'page {page or 1}: {len(page_data)} items')
+    yield from page_data
 
-        next_page = _next_page_number(response.headers)
-        if next_page is None:
-            return
-        query_params['page'] = next_page
+    page = _next_page_number(response.headers)
+    if page:
+        yield from _get_paginated_data(api_endpoint, page=page)
 
 
 def _get_latest_release_tag(repo):
