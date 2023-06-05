@@ -12,6 +12,10 @@ HTTP_CACHE = CACHE_DIR / '.cache.sqlite3'
 
 class APICaller:
     api_base_url = 'https://api.github.com'
+    default_headers = (
+        ('Accept', 'application/vnd.github+json'),
+        ('X-GitHub-Api-Version', '2022-11-28'),
+    )
     errors = (requests.HTTPError,)
 
     def __init__(self, cached, auth_helper, auth_header):
@@ -22,10 +26,7 @@ class APICaller:
             logger.debug('Setting up requests.Session')
             self._session = requests.Session()
 
-        self._headers = {
-            'Accept': 'application/vnd.github+json',
-            'X-GitHub-Api-Version': '2022-11-28',
-        }
+        self._headers = dict(self.default_headers)
         if auth_helper:
             logger.debug('Using authentication handler')
             self._auth = HelperAuth(auth_helper, cache_token=True)
