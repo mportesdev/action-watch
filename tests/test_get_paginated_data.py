@@ -3,7 +3,8 @@ from unittest.mock import create_autospec
 import pytest
 import requests
 
-from action_watch import _get_paginated_data, APICaller
+from action_watch import _get_paginated_data
+from action_watch._api import APICaller
 
 
 @pytest.fixture

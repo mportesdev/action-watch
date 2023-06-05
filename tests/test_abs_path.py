@@ -1,6 +1,6 @@
 import pytest
 
-from action_watch import _abs_path
+from action_watch._paths import _abs_path
 
 
 @pytest.mark.parametrize(
