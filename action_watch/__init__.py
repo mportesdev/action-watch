@@ -60,7 +60,7 @@ def _get_usages(discovery_root, filename_cache=None):
         if file_path not in file_paths:
             file_paths.append(file_path)
 
-    logger.debug(f'\n{yaml.safe_dump(result, indent=4)}')
+    logger.debug(f'Usages found:\n{yaml.safe_dump(result, indent=4)}')
     return result
 
 
@@ -179,6 +179,12 @@ def main():
     if not action_usages:
         logger.info('No action usages found')
         return
+    usage_count = sum(
+        len(file_paths)
+        for usages_by_revision in action_usages.values()
+        for file_paths in usages_by_revision.values()
+    )
+    logger.info(f'Found {usage_count} usages of {len(action_usages)} actions')
 
     for repo, usages in action_usages.items():
         _report_repo(repo, usages)
