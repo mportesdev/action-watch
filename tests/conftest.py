@@ -62,6 +62,49 @@ tags_test_data = (
     },
 )
 
+branches_test_data = (
+    {
+        'headers': {
+            'link': '<endpoint?page=2>; rel="next",'
+                    ' <endpoint?page=2>; rel="last"',
+        },
+        'body': [
+            {
+                'name': 'main',
+                'commit': {
+                    'sha': '3ed5b0b31915e00966e11ef0fab1554d0b4b149f',
+                },
+            },
+            {
+                'name': 'release/v2',
+                'commit': {
+                    'sha': 'a8f2909aad81d2e2e2843a796aedda99e1c8ed0c',  # latest
+                },
+            },
+        ],
+    },
+    {
+        'headers': {
+            'link': '<endpoint?page=1>; rel="prev",'
+                    ' <endpoint?page=1>; rel="first"',
+        },
+        'body': [
+            {
+                'name': 'unstable/v2',
+                'commit': {
+                    'sha': 'c2d7d283597b000b014d7a600717c22c6b3deb84',
+                },
+            },
+            {
+                'name': 'release/v1',
+                'commit': {
+                    'sha': 'ec028e6d0a1a3ad0d43909ec4fbec3a6cf403c0b',
+                },
+            },
+        ],
+    },
+)
+
 
 @pytest.fixture
 def tag_responses():
@@ -77,3 +120,8 @@ def tag_responses():
 @pytest.fixture
 def tag_items():
     return (revision for page in tags_test_data for revision in page['body'])
+
+
+@pytest.fixture
+def branch_items():
+    return (revision for page in branches_test_data for revision in page['body'])
