@@ -14,6 +14,12 @@ from ._paths import CACHE_DIR, _abs_path
 PATH_CACHE = CACHE_DIR / '.yml_files.yaml'
 
 
+def _repo_and_revision(action_revision):
+    action, revision = action_revision.split('@')
+    repo = '/'.join(action.split('/')[:2])
+    return repo, revision
+
+
 def _get_usages(discovery_root, filename_cache=None):
 
     def _cached_workflow_paths():
@@ -48,13 +54,13 @@ def _get_usages(discovery_root, filename_cache=None):
         for file_path in paths:
             with open(file_path, encoding='utf8') as f:
                 workflow_data = yaml.safe_load(f)
-            for action_spec in values_for_key(workflow_data, 'uses'):
-                yield file_path, action_spec
+            for action_revision in values_for_key(workflow_data, 'uses'):
+                yield file_path, action_revision
 
     paths = _cached_workflow_paths() or _discovered_workflow_paths()
     result = {}
-    for file_path, action_spec in _read_workflow_files(paths):
-        repo, revision = action_spec.split('@')
+    for file_path, action_revision in _read_workflow_files(paths):
+        repo, revision = _repo_and_revision(action_revision)
         item = result.setdefault(repo, {})
         file_paths = item.setdefault(revision, [])
         if file_path not in file_paths:
