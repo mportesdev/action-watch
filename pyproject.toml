@@ -17,9 +17,6 @@ dependencies = [
 [project.scripts]
 action-watch = "action_watch:main"
 
-[tool.setuptools.package-data]
-action_watch = [".env-default"]
-
 [build-system]
 requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
