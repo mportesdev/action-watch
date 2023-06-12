@@ -36,8 +36,9 @@ ACTION_WATCH_DEBUG={}
 
 
 def _setup_env():
-    """Create a default `.env` file if necessary. Load `.env` into
-    environment.
+    """If the `.env` file exists, load it into environment. Otherwise,
+    create the '.env' file based on existing environment variables,
+    if any.
     """
     if DOTENV.is_file():
         load_dotenv(DOTENV)
@@ -57,6 +58,9 @@ def _setup_env():
 
 
 def _get_env_flag(key):
+    """Return False if the environment variable is not set, empty or '0'.
+    Return True otherwise.
+    """
     value = os.getenv(f'ACTION_WATCH_{key}')
     return bool(value) and value != '0'
 
