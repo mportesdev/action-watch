@@ -36,15 +36,19 @@ ACTION_WATCH_DEBUG={}
 
 
 def _setup_env():
-    """If the `.env` file exists, load it into environment. Otherwise,
-    create the '.env' file based on existing environment variables,
-    if any.
+    _process_dotenv(DOTENV)
+
+
+def _process_dotenv(dotenv_path):
+    """If the `dotenv_path` file exists, load it into environment.
+    Otherwise, create the `dotenv_path` file based on existing
+    environment variables, if any.
     """
-    if DOTENV.is_file():
-        load_dotenv(DOTENV)
+    if dotenv_path.is_file():
+        load_dotenv(dotenv_path)
     else:
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-        DOTENV.write_text(
+        dotenv_path.write_text(
             DOTENV_TEMPLATE.format(
                 _get_env_string('DISCOVERY_ROOT'),
                 _get_env_string('AUTH_HELPER'),
