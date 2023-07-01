@@ -4,19 +4,22 @@ description = "Check for latest versions of GitHub Actions."
 version = "0.0.1"
 requires-python = ">=3.9"
 dependencies = [
-    "python-dotenv",
+    "python-dotenv==1.*",
     "loguru",
-    "requests",
-    "requests-cache",
-    "PyYAML",
+    "requests==2.*",
+    "requests-cache==1.*",
+    "PyYAML==6.*",
     "handpick",
     "helper-auth",
-    "platformdirs",
+    "platformdirs==3.*",
 ]
 
 [project.scripts]
 action-watch = "action_watch:main"
 
+[tool.setuptools]
+packages = ["action_watch"]
+
 [build-system]
-requires = ["setuptools", "setuptools-scm"]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
